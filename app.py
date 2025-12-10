@@ -4,13 +4,47 @@ import streamlit as st
 from pathlib import Path
 
 
+@st.cache_resource
+def initialize_database():
+    """初始化數據庫，如果不存在則自動爬取數據"""
+    db_file = Path(__file__).parent / "data.db"
+    
+    if not db_file.exists():
+        st.info("🔄 首次運行，正在爬取數據...")
+        try:
+            # 動態導入爬蟲模塊
+            import sys
+            sys.path.insert(0, str(Path(__file__).parent))
+            from process_data import fetch_weather_data, parse_weather_data, save_to_database, save_to_json
+            
+            # 執行爬蟲流程
+            api_data = fetch_weather_data()
+            if not api_data:
+                return False
+            
+            weather_data = parse_weather_data(api_data)
+            if not weather_data:
+                return False
+            
+            save_to_database(weather_data)
+            save_to_json(weather_data)
+            
+            st.success("✅ 數據爬取完成！")
+            return True
+        except Exception as e:
+            st.error(f"❌ 數據爬取失敗: {str(e)}")
+            return False
+    
+    return True
+
+
 def get_weather_data():
     """Connect to database and retrieve weather data"""
     db_file = Path(__file__).parent / "data.db"
     
     if not db_file.exists():
         st.error("❌ 錯誤：找不到 data.db 檔案")
-        st.info("請先執行 process_data.py 來生成數據庫")
+        st.info("請重新整理頁面或聯絡管理員")
         return None
     
     try:
@@ -81,6 +115,10 @@ def main():
     st.set_page_config(page_title="農業氣象預報數據分析", page_icon="🌤️", layout="wide")
     
     st.title("🌤️  農業氣象預報數據分析應用")
+    
+    # 初始化數據庫
+    if not initialize_database():
+        st.stop()
     
     # Get data from database
     df = get_weather_data()

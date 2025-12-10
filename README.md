@@ -1,20 +1,20 @@
 # 農業氣象預報數據分析應用
 
-這是一個用來展示台灣農業氣象預報數據的 Streamlit 應用程式。
+這是一個用來爬取並展示台灣農業氣象預報數據的 Streamlit 應用程式。
 
 ## 功能
 
-- 從 JSON 檔案讀取農業氣象預報數據
+- 從 CWA 開放資料 API 爬取農業氣象預報數據
 - 將數據存儲到 SQLite 資料庫
 - 使用 Streamlit 網頁界面展示數據
 - 提供各地區溫度統計分析
 
 ## 檔案說明
 
-- `process_data.py` - 數據處理腳本，從 JSON 檔案讀取數據並存入 SQLite 資料庫
+- `weather_crawler.py` - 數據爬蟲腳本，從 CWA API 爬取數據並存入 SQLite 資料庫
 - `app.py` - Streamlit 應用程式主文件，用於展示天氣數據
-- `F-A0010-001.json` - 中央氣象署提供的農業氣象預報 JSON 數據
 - `data.db` - SQLite 資料庫檔案，包含 weather 資料表
+- `weather_data.json` - 爬蟲爬取的原始數據備份 (JSON 格式)
 
 ## 安裝依賴
 
@@ -26,9 +26,9 @@ pip install -r requirements.txt
 
 ### 本地運行
 
-1. 首先運行數據處理腳本：
+1. 首先運行數據爬蟲腳本以獲取最新數據：
 ```bash
-python process_data.py
+python weather_crawler.py
 ```
 
 2. 然後啟動 Streamlit 應用：
@@ -45,7 +45,9 @@ streamlit run app.py
 3. 登入並連接您的 GitHub 帳號
 4. 點擊「New app」
 5. 選擇您的 repository、branch 和 app file (`app.py`)
-6. 點擊「Deploy」
+6. 在部署設置中添加環境變數：
+   - `CWA_API_KEY` = 您的 CWA 授權碼
+7. 點擊「Deploy」
 
 ## 資料表結構
 
@@ -59,12 +61,14 @@ streamlit run app.py
 | min_temp | REAL | 最低溫度 (°C) |
 | max_temp | REAL | 最高溫度 (°C) |
 | description | TEXT | 天氣描述 |
+| fetch_time | TIMESTAMP | 數據爬取時間 |
 
 ## 數據來源
 
-數據來自中央氣象署 (CWA) 提供的一週農業氣象預報 API：
+數據來自中央氣象署 (CWA) 提供的開放資料 API：
 - 資料集 ID: F-A0010-001
 - 資源名稱: 中央氣象署氣候服務_農業氣象一週預報
+- API 文檔: https://opendata.cwa.gov.tw/dataset/forecast/F-A0010-001
 
 ## 許可證
 
